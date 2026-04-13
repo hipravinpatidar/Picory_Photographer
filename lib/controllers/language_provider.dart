@@ -19,8 +19,12 @@ class LanguageProvider extends ChangeNotifier {
   final Map<String, Map<String, String>> _translations = {
     'en': {
       'app_name': 'Picory',
-      'tagline': 'Shaadi Se Delivery Tak — Har Kaam Ek App Mein.',
+      'powerd_by': 'Powered by',
+      'team_picory': 'Team Picory',
+      'app_slug': '📸 Capture-Create-Deliver',
+      'tagline': 'From Shoot to Share — Made for Photographers',
       'login': 'Login',
+      'welcome_back': 'Welcome Back 👋',
       'register': 'Register',
       'email': 'Email',
       'full_name': 'Full Name',
@@ -75,9 +79,11 @@ class LanguageProvider extends ChangeNotifier {
       'profile_name': 'John Photographer',
     },
     'hi': {
-      'app_name': 'पिकोरी',
-      'tagline': 'कैप्चर. प्रबंधित करें. वितरित करें.',
+      'app_name': 'Picory',
+      'app_slug': '📸 Capture-Create-Deliver',
+      'tagline': 'From Shoot to Share — Made for Photographers',
       'login': 'लॉग इन करें',
+      'welcome_back': 'Welcome Back 👋',
       'register': 'रजिस्टर करें',
       'email': 'ईमेल',
       'full_name': 'पूरा नाम',

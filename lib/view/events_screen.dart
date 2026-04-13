@@ -64,8 +64,7 @@ class EventsScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) =>
-                  EventDetailsScreen(eventName: 'Event ${index + 1}'),
+              builder: (_) => EventDetailsScreen(eventName: 'Event ${index + 1}'),
             ),
           );
         },

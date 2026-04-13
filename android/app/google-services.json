@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "128257919715",
+    "project_id": "picory-photographer",
+    "storage_bucket": "picory-photographer.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:128257919715:android:b2381e9996d952c30c13d6",
+        "android_client_info": {
+          "package_name": "com.example.picory_photographer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDf0QKJ6eMdM2nII1Fazx--vP6JUXQaroU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -3,11 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:picory_app/view/photos_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-
 import '../controllers/language_provider.dart';
 import '../controllers/theme_provider.dart';
 import '../ui_helpers/app_theme.dart';
-
 
 class EventDetailsScreen extends StatefulWidget {
   final String eventName;
@@ -63,7 +61,17 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(widget.eventName),
+            automaticallyImplyLeading: false,
+            leading: IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: Icon(Icons.arrow_back_ios)),
+            title: Text(
+              widget.eventName,
+              style: TextStyle(fontSize: 24),
+            ),
+            centerTitle: true,
             actions: [
               IconButton(
                 onPressed: () {},
@@ -76,83 +84,89 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-
                 // Access Code & QR Card
                 Card(
-                  elevation: 2,
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(AppTheme.spacing20),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        ///  QR TITLE
+                        Text(
+                          languageProvider.getText('qr_code'),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppTheme.lightTextSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
 
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  languageProvider.getText('access_code'),
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: isDark
-                                        ? AppTheme.darkTextSecondary
-                                        : AppTheme.lightTextSecondary,
-                                  ),
-                                ),
-                                const SizedBox(height: AppTheme.spacing8),
-                                Text(
+                        /// QR SQUARE BOX
+                        Center(
+                          child: Container(
+                            width: 250,
+                            height: 250,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: QrImageView(
+                              data: _accessCode,
+                              version: QrVersions.auto,
+                              backgroundColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        /// CODE + COPY
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              /// ACCESS CODE
+                              Expanded(
+                                child: Text(
                                   _accessCode,
+                                  textAlign: TextAlign.center,
                                   style: const TextStyle(
-                                    fontSize: 28,
+                                    fontSize: 24,
                                     fontWeight: FontWeight.bold,
-                                    letterSpacing: 4,
+                                    letterSpacing: 3,
                                     color: AppTheme.royalPurple,
                                   ),
                                 ),
-                              ],
-                            ),
-                            IconButton(
-                              onPressed: _copyAccessCode,
-                              icon: const Icon(Icons.copy_rounded),
-                              style: IconButton.styleFrom(
-                                backgroundColor:
-                                AppTheme.royalPurple.withOpacity(0.1),
-                                foregroundColor: AppTheme.royalPurple,
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppTheme.spacing24),
 
-                        // QR Code
-                        Container(
-                          padding: const EdgeInsets.all(AppTheme.spacing16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius:
-                            BorderRadius.circular(AppTheme.radiusMedium),
-                            border: Border.all(color: Colors.grey.shade300),
-                          ),
-                          child: Column(
-                            children: [
-                              QrImageView(
-                                data: _accessCode,
-                                version: QrVersions.auto,
-                                size: 200,
-                                backgroundColor: Colors.white,
+                              /// DIVIDER (optional but clean look)
+                              Container(
+                                height: 30,
+                                width: 1,
+                                color: Colors.grey.shade300,
                               ),
-                              const SizedBox(height: AppTheme.spacing12),
-                              Text(
-                                languageProvider.getText('qr_code'),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppTheme.lightTextSecondary,
-                                ),
+
+                              /// COPY BUTTON
+                              IconButton(
+                                onPressed: _copyAccessCode,
+                                icon: const Icon(Icons.copy_rounded),
+                                color: AppTheme.royalPurple,
                               ),
                             ],
                           ),
                         ),
+                        const SizedBox(height: 25),
                       ],
                     ),
                   ),
@@ -165,8 +179,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () {},
-                        icon:
-                        const Icon(Icons.add_photo_alternate_rounded),
+                        icon: const Icon(Icons.add_photo_alternate_rounded),
                         label: Text(
                           languageProvider.getText('add_photos'),
                         ),
@@ -182,8 +195,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                       child: OutlinedButton.icon(
                         onPressed: () {},
                         icon: const Icon(Icons.attach_file_rounded),
-                        label:
-                        Text(languageProvider.getText('add_files')),
+                        label: Text(languageProvider.getText('add_files')),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
                             vertical: AppTheme.spacing16,
@@ -196,74 +208,155 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                 const SizedBox(height: AppTheme.spacing24),
 
                 // Permissions
-                Card(
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppTheme.spacing20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                // Card(
+                //   elevation: 2,
+                //   child: Padding(
+                //     padding: const EdgeInsets.all(AppTheme.spacing20),
+                //     child: Column(
+                //       crossAxisAlignment: CrossAxisAlignment.start,
+                //       children: [
+                //         Text(
+                //           languageProvider.getText('permissions'),
+                //           style: const TextStyle(
+                //             fontSize: 18,
+                //             fontWeight: FontWeight.bold,
+                //           ),
+                //         ),
+                //         const SizedBox(height: AppTheme.spacing16),
+                //         _buildPermissionSwitch(
+                //           languageProvider.getText('allow_download'),
+                //           Icons.download_rounded,
+                //           _allowDownload,
+                //           (v) => setState(() => _allowDownload = v),
+                //         ),
+                //         const Divider(height: AppTheme.spacing24),
+                //         _buildPermissionSwitch(
+                //           languageProvider.getText('allow_share'),
+                //           Icons.share_rounded,
+                //           _allowShare,
+                //           (v) => setState(() => _allowShare = v),
+                //         ),
+                //         const Divider(height: AppTheme.spacing24),
+                //         _buildPermissionSwitch(
+                //           languageProvider.getText('allow_screenshot'),
+                //           Icons.screenshot_rounded,
+                //           _allowScreenshot,
+                //           (v) => setState(() => _allowScreenshot = v),
+                //         ),
+                //         const Divider(height: AppTheme.spacing24),
+                //         _buildPermissionSwitch(
+                //           languageProvider.getText('allow_face_scan'),
+                //           Icons.face_rounded,
+                //           _allowFaceScan,
+                //           (v) => setState(() => _allowFaceScan = v),
+                //         ),
+                //         const SizedBox(height: AppTheme.spacing24),
+                //         SizedBox(
+                //           height: 50,
+                //           width: double.infinity,
+                //           child: ElevatedButton(
+                //             onPressed: _handleSubmit,
+                //             child: Text(
+                //               languageProvider.getText('submit'),
+                //             ),
+                //           ),
+                //         ),
+                //       ],
+                //     ),
+                //   ),
+                // ),
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppTheme.spacing20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-                        Text(
-                          languageProvider.getText('permissions'),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                      /// TITLE
+                      Text(
+                        languageProvider.getText('permissions'),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: AppTheme.spacing16),
+
+                      /// ✅ FIRST 2 PERMISSIONS (always visible)
+                      _buildPermissionSwitch(
+                        languageProvider.getText('allow_download'),
+                        Icons.download_rounded,
+                        _allowDownload,
+                            (v) => setState(() => _allowDownload = v),
+                      ),
+                      const Divider(height: AppTheme.spacing24),
+                      _buildPermissionSwitch(
+                        languageProvider.getText('allow_share'),
+                        Icons.share_rounded,
+                        _allowShare,
+                            (v) => setState(() => _allowShare = v),
+                      ),
+
+                      /// 📦 EXPANDABLE PERMISSIONS
+                      ExpansionTile(
+                        initiallyExpanded: false,
+                        title: const Text(
+                          "More Permissions",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
+                        childrenPadding: const EdgeInsets.symmetric(horizontal: 0),
+                        children: [
 
-                        const SizedBox(height: AppTheme.spacing16),
+                          const Divider(height: AppTheme.spacing24),
 
-                        _buildPermissionSwitch(
-                          languageProvider.getText('allow_download'),
-                          Icons.download_rounded,
-                          _allowDownload,
-                              (v) => setState(() => _allowDownload = v),
-                        ),
+                          _buildPermissionSwitch(
+                            languageProvider.getText('allow_screenshot'),
+                            Icons.screenshot_rounded,
+                            _allowScreenshot,
+                                (v) => setState(() => _allowScreenshot = v),
+                          ),
 
-                        const Divider(height: AppTheme.spacing24),
+                          const Divider(height: AppTheme.spacing24),
 
-                        _buildPermissionSwitch(
-                          languageProvider.getText('allow_share'),
-                          Icons.share_rounded,
-                          _allowShare,
-                              (v) => setState(() => _allowShare = v),
-                        ),
+                          _buildPermissionSwitch(
+                            languageProvider.getText('allow_face_scan'),
+                            Icons.face_rounded,
+                            _allowFaceScan,
+                                (v) => setState(() => _allowFaceScan = v),
+                          ),
+                        ],
+                      ),
 
-                        const Divider(height: AppTheme.spacing24),
+                      const SizedBox(height: AppTheme.spacing24),
 
-                        _buildPermissionSwitch(
-                          languageProvider.getText('allow_screenshot'),
-                          Icons.screenshot_rounded,
-                          _allowScreenshot,
-                              (v) => setState(() => _allowScreenshot = v),
-                        ),
-
-                        const Divider(height: AppTheme.spacing24),
-
-                        _buildPermissionSwitch(
-                          languageProvider.getText('allow_face_scan'),
-                          Icons.face_rounded,
-                          _allowFaceScan,
-                              (v) => setState(() => _allowFaceScan = v),
-                        ),
-
-                        const SizedBox(height: AppTheme.spacing24),
-
-                        SizedBox(
-                          height: 50,
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _handleSubmit,
-                            child: Text(
-                              languageProvider.getText('submit'),
+                      /// SUBMIT BUTTON
+                      SizedBox(
+                        height: 50,
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _handleSubmit,
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
+                          child: Text(
+                            languageProvider.getText('submit'),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
+              ),
                 const SizedBox(height: AppTheme.spacing20),
 
                 // View Photos
@@ -279,8 +372,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                         ),
                       );
                     },
-                    icon:
-                    const Icon(Icons.photo_library_rounded),
+                    icon: const Icon(Icons.photo_library_rounded),
                     label: Text(
                       languageProvider.getText('view_photos'),
                     ),
@@ -295,11 +387,11 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   }
 
   Widget _buildPermissionSwitch(
-      String title,
-      IconData icon,
-      bool value,
-      Function(bool) onChanged,
-      ) {
+    String title,
+    IconData icon,
+    bool value,
+    Function(bool) onChanged,
+  ) {
     return Row(
       children: [
         Container(

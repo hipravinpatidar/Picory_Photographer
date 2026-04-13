@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'dart:math';
@@ -15,18 +18,24 @@ class CreateEventScreen extends StatefulWidget {
 }
 
 class _CreateEventScreenState extends State<CreateEventScreen> {
+
   final _formKey = GlobalKey<FormState>();
-  final _eventNameController = TextEditingController();
-  final _dealAmountController = TextEditingController();
-  final _amountReceivedController = TextEditingController();
-  DateTime? _selectedDate;
   bool _isLoading = false;
+
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _locationController = TextEditingController();
+
+  DateTime? _selectedDate;
+  File? _thumbnail;
+
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void dispose() {
-    _eventNameController.dispose();
-    _dealAmountController.dispose();
-    _amountReceivedController.dispose();
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _locationController.dispose();
     super.dispose();
   }
 
@@ -159,7 +168,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => EventDetailsScreen(
-                      eventName: _eventNameController.text,
+                      eventName: _titleController.text,
                       accessCode: accessCode,
                     ),
                   ),
@@ -173,13 +182,46 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     );
   }
 
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _thumbnail = File(pickedFile.path);
+      });
+    }
+  }
+
+  InputDecoration _inputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade400),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.blue, width: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: IconButton(onPressed: (){
+          Navigator.pop(context);
+        }, icon: Icon(Icons.arrow_back_ios)),
+        centerTitle: true,
         title: Consumer<LanguageProvider>(builder: (_, lang , __) {
-          return Text(lang.getText('create_event'));
+          return Text(lang.getText('create_event'),style: TextStyle(fontSize: 24),);
         },
         ),
       ),
@@ -203,104 +245,89 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
 
-                          // Event Name
+                          /// TITLE
                           TextFormField(
-                            controller: _eventNameController,
-                            decoration: InputDecoration(
-                              labelText: languageProvider.getText('event_name'),
-                              prefixIcon: const Icon(Icons.event_rounded),
-                            ),
+                            controller: _titleController,
+                            decoration: _inputDecoration("Title", Icons.title),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return languageProvider.getText('event_name_required');
+                                return "Title is required";
                               }
                               return null;
                             },
                           ),
 
-                          const SizedBox(height: AppTheme.spacing20),
+                          const SizedBox(height: 20),
 
-                          // Event Date
+                          /// DESCRIPTION (Optional)
+                          TextFormField(
+                            controller: _descriptionController,
+                            decoration: _inputDecoration("Description", Icons.description),
+                            maxLines: 3,
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          /// LOCATION (Optional)
+                          TextFormField(
+                            controller: _locationController,
+                            decoration: _inputDecoration("Location", Icons.location_on),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          /// DATE
                           InkWell(
                             onTap: () => _selectDate(context),
                             child: InputDecorator(
-                              decoration: InputDecoration(
-                                labelText: languageProvider.getText('event_date'),
-                                prefixIcon: const Icon(Icons.calendar_today_rounded),
-                              ),
+                              decoration: _inputDecoration("Event Date", Icons.calendar_today),
                               child: Text(
                                 _selectedDate != null
-                                    ? DateFormat('dd MMM yyyy').format(_selectedDate!)
-                                    : languageProvider.getText('select_date'),
-                                style: TextStyle(
-                                  color: _selectedDate != null
-                                      ? (isDark
-                                      ? AppTheme.darkTextPrimary
-                                      : AppTheme.lightTextPrimary)
-                                      : (isDark
-                                      ? AppTheme.darkTextSecondary
-                                      : AppTheme.lightTextSecondary),
-                                ),
+                                    ? DateFormat('dd-MM-yyyy').format(_selectedDate!)
+                                    : "Select Date",
                               ),
                             ),
                           ),
 
-                          const SizedBox(height: AppTheme.spacing20),
+                          const SizedBox(height: 20),
 
-                          // Deal Amount
-                          TextFormField(
-                            controller: _dealAmountController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              labelText: languageProvider.getText('deal_amount'),
-                              prefixIcon: const Icon(Icons.currency_rupee_rounded),
-                              hintText: languageProvider.getText('amount_hint'),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return languageProvider.getText('deal_amount_required');
-                              }
-                              return null;
-                            },
-                          ),
-
-                          const SizedBox(height: AppTheme.spacing20),
-
-                          // Amount Received
-                          TextFormField(
-                            controller: _amountReceivedController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              labelText: languageProvider.getText('amount_received'),
-                              prefixIcon: const Icon(Icons.payments_rounded),
-                              hintText: languageProvider.getText('amount_hint'),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return languageProvider.getText('amount_received_required');
-                              }
-                              return null;
-                            },
-                          ),
-
-                          const SizedBox(height: AppTheme.spacing32),
-
-                          // Create Button
-                          SizedBox(
-                            height: 50,
-                            child: ElevatedButton.icon(
-                              onPressed: _isLoading ? null : _handleCreateEvent,
-                              icon: _isLoading
-                                  ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
+                          /// THUMBNAIL PICKER
+                          GestureDetector(
+                            onTap: _pickImage,
+                            child: Container(
+                              height: 150,
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: _thumbnail != null
+                                  ? ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.file(
+                                  _thumbnail!,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
                                 ),
                               )
-                                  : const Icon(Icons.add_circle_rounded),
-                              label: Text(languageProvider.getText('create_event')),
+                                  : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.image, size: 40, color: Colors.grey),
+                                  SizedBox(height: 8),
+                                  Text("Pick Thumbnail (Optional)"),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 30),
+
+                          /// BUTTON
+                          SizedBox(
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: _handleCreateEvent,
+                              child: Text("Create Event"),
                             ),
                           ),
                         ],

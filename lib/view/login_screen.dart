@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:picory_app/view/register_screen.dart';
+import 'package:picory_app/view/verify_otp_screen.dart';
 import 'package:provider/provider.dart';
+import '../controllers/login_user_provider.dart'; // Updated controller
 import '../controllers/language_provider.dart';
 import '../controllers/theme_provider.dart';
+import '../ui_helpers/app_images.dart';
 import '../ui_helpers/app_theme.dart';
-import 'main_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,229 +19,316 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
-  bool _isLoading = false;
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
+  final _phoneController = TextEditingController();
 
   void _handleLogin() async {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const MainScreen()),
-    );
+    if (!_formKey.currentState!.validate()) return;
 
-    // if (_formKey.currentState!.validate()) {
-    //   setState(() => _isLoading = true);
-    //
-    //   // Simulate API call
-    //   await Future.delayed(const Duration(seconds: 2));
-    //
-    //   if (mounted) {
-    //     setState(() => _isLoading = false);
-    //     Navigator.pushReplacement(
-    //       context,
-    //       MaterialPageRoute(builder: (context) => const MainScreen()),
-    //     );
-    //   }
-    // }
+    final loginController =
+        Provider.of<LoginController>(context, listen: false);
+    print("Login Called");
+
+    try {
+      final phone = _phoneController.text.replaceAll(RegExp(r'\D'), '');
+      final formattedPhone = "+91$phone";
+
+      ///  NEW METHOD
+      final result = await loginController.checkUserAndSendOTP(formattedPhone);
+
+      if (result['success'] == true && result['registered'] == true) {
+        ///  Go to OTP
+        if (context.mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => VerifyOtpScreen(phone: phone),
+            ),
+          );
+        }
+      } else if (result['registered'] == false) {
+        ///  Go to Register Screen
+        if (context.mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => RegisterScreen(
+                phoneController: TextEditingController(text: phone),
+              ), //  create this
+            ),
+          );
+        }
+      } else {
+        /// ⚠ Error
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(result['message'] ?? 'Something went wrong')),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppTheme.spacing24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: AppTheme.spacing32),
+      body: Container(
+        height: double.infinity,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppTheme.royalPurple,
+              AppTheme.deepBlue,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppTheme.spacing24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: AppTheme.spacing32),
 
-                // Logo
-                Center(
-                  child: Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppTheme.royalPurple, AppTheme.accentPurple],
+                  /// Logo
+                  Center(
+                    child: Container(
+                      width: 150,
+                      height: 150,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusLarge),
                       ),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.royalPurple.withOpacity(0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt_rounded,
-                      size: 50,
-                      color: Colors.white,
+                      child: Image.asset(
+                        AppImages.appSplashLogo,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: AppTheme.spacing24),
+                  const SizedBox(height: AppTheme.spacing12),
 
-                // Welcome Text
-                Consumer<LanguageProvider>(
-                  builder: (_, lang,__) { 
-                    return Text(
-                      lang.getText('app_name'),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: AppTheme.spacing8),
+                  /// App Name
+                  Consumer<LanguageProvider>(
+                    builder: (_, lang, __) {
+                      return Text(
+                        lang.getText('app_name'),
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.5,
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppTheme.spacing8),
 
-                Consumer2<LanguageProvider,ThemeProvider>(
-                  builder: (_, lang, theme,__) {
-                    return Text(
-                      lang.getText('tagline'),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: theme.isDarkMode ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: AppTheme.spacing32),
+                  /// Tagline
+                  Consumer2<LanguageProvider, ThemeProvider>(
+                    builder: (_, lang, theme, __) {
+                      return Text(
+                        lang.getText('tagline'),
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.openSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.8,
+                          color: theme.isDarkMode
+                              ? AppTheme.darkTextSecondary
+                              : AppTheme.lightTextSecondary,
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppTheme.spacing32),
+                  const SizedBox(height: AppTheme.spacing16),
 
-                // Login Card
-                Consumer<LanguageProvider>(
-                  builder: (_, lang, __) {
-                    return Card(
-                      elevation: 4,
-                      shadowColor: Colors.black.withOpacity(0.1),
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppTheme.spacing24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              lang.getText('login'),
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-
-                            const SizedBox(height: AppTheme.spacing24),
-
-                            // Email/Phone Field
-                            TextFormField(
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: InputDecoration(
-                                labelText: lang.getText('email'),
-                                prefixIcon: const Icon(Icons.email_outlined),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your email';
-                                }
-                                return null;
-                              },
-                            ),
-
-                            const SizedBox(height: AppTheme.spacing16),
-
-                            // Password Field
-                            TextFormField(
-                              controller: _passwordController,
-                              obscureText: _obscurePassword,
-                              decoration: InputDecoration(
-                                labelText: lang.getText('password'),
-                                prefixIcon: const Icon(Icons.lock_outline),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  /// Login Card
+                  Consumer<LanguageProvider>(
+                    builder: (_, lang, __) {
+                      return Card(
+                        elevation: 4,
+                        shadowColor: Colors.black.withOpacity(0.1),
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppTheme.spacing24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    lang.getText('login'),
+                                    style: const TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                  onPressed: () {
-                                    setState(() => _obscurePassword = !_obscurePassword);
+                                  Text(
+                                    lang.getText('welcome_back'),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                ],
+                              ),
+                              const SizedBox(height: AppTheme.spacing16),
+                              const SizedBox(height: AppTheme.spacing12),
+
+                              // Phone Field
+                              TextFormField(
+                                controller: _phoneController,
+                                keyboardType: TextInputType.phone,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: InputDecoration(
+                                  labelText: lang.getText('phone'),
+                                  labelStyle: const TextStyle(color: Colors.white70),
+
+                                  prefixIcon: const Icon(Icons.phone_outlined,
+                                      color: Colors.white),
+                                  prefixText: '+91 ',
+                                  prefixStyle:
+                                      const TextStyle(color: Colors.white),
+
+                                  filled: true,
+                                  fillColor:
+                                      Colors.transparent, //  FULL TRANSPARENT
+
+                                  //  NORMAL BORDER
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: Colors.white70,
+                                      width: 1.5,
+                                    ),
+                                  ),
+
+                                  //  FOCUSED BORDER
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
+                                  ),
+
+                                  //  ERROR BORDER
+                                  errorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: Colors.redAccent,
+                                      width: 1.5,
+                                    ),
+                                  ),
+
+                                  focusedErrorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: Colors.red,
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(10),
+                                ],
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your mobile number';
+                                  }
+                                  if (value.length != 10) {
+                                    return 'Enter valid 10-digit mobile number';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: AppTheme.spacing32),
+
+                              // Login Button
+                              SizedBox(
+                                height: 50,
+                                child: Consumer<LoginController>(
+                                  builder: (_, controller, __) {
+                                    return ElevatedButton(
+                                      onPressed: controller.isLoading
+                                          ? null
+                                          : _handleLogin,
+                                      child: controller.isLoading
+                                          ? const SizedBox(
+                                              width: 18,
+                                              height: 18,
+                                              child: CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : Text(lang.getText('login')),
+                                    );
                                   },
                                 ),
                               ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your password';
-                                }
-                                return null;
-                              },
-                            ),
-
-                            const SizedBox(height: AppTheme.spacing12),
-
-                            // Forgot Password
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton(
-                                onPressed: () {},
-                                child: Text(
-                                  lang.getText('forgot_password'),
-                                  style: const TextStyle(color: AppTheme.royalPurple),
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: AppTheme.spacing24),
-
-                            // Login Button
-                            SizedBox(
-                              height: 50,
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _handleLogin,
-                                child: _isLoading
-                                    ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                                    : Text(lang.getText('login')),
-                              ),
-                            ),
-
-                            const SizedBox(height: AppTheme.spacing16),
-
-                            // Register Button
-                            SizedBox(
-                              height: 50,
-                              child: OutlinedButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                                  );
-                                },
-                                child: Text(lang.getText('register')),
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppTheme.spacing32),
+                  const SizedBox(height: AppTheme.spacing32),
+                  const SizedBox(height: AppTheme.spacing32),
+
+                  /// Powerd By
+                  Consumer2<LanguageProvider, ThemeProvider>(
+                    builder: (_, lang, theme, __) {
+                      return Column(
+                        children: [
+                          const SizedBox(height: 16),
+                          Text(
+                            lang.getText('powerd_by'),
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.openSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              color: theme.isDarkMode
+                                  ? AppTheme.darkTextSecondary
+                                  : AppTheme.lightTextSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            lang.getText('team_picory'),
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.openSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                              color: theme.isDarkMode
+                                  ? Colors.white
+                                  : AppTheme
+                                      .royalPurple, // Stylish accent color
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),

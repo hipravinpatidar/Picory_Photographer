@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+
 import '../controllers/language_provider.dart';
+import '../controllers/login_user_provider.dart';
+import '../controllers/splash_controller.dart';
+import '../ui_helpers/app_images.dart';
 import '../ui_helpers/app_theme.dart';
+import 'home_screen.dart';
 import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -13,24 +19,27 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
+
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _bounceAnimation;
+  late SplashController _splashController;
 
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
-    _navigateToLogin();
+    _splashController = Provider.of<SplashController>(context, listen: false);
+    _initialize();
   }
 
+  // ANIMATION
   void _initializeAnimations() {
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1800),
       vsync: this,
-    )..repeat(reverse: true); // Continuous smooth up-down
+    )..repeat(reverse: true);
 
-    // Vertical bounce (upar neeche)
     _bounceAnimation = Tween<double>(
       begin: 0.0,
       end: -20.0,
@@ -41,76 +50,112 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
-    // Slight breathing scale
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.05), weight: 50),
       TweenSequenceItem(tween: Tween(begin: 1.05, end: 1.0), weight: 50),
     ]).animate(_controller);
   }
 
-  void _navigateToLogin() {
-    Future.delayed(const Duration(milliseconds: 2500), () {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-            const LoginScreen(),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-            transitionDuration: const Duration(milliseconds: 500),
-          ),
-        );
+  //  LOGIC START
+  Future<void> _initialize() async {
+    print("Initialized");
+    await _splashController.initialize();
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (mounted) {
+      if (_splashController.hasInternet) {
+        _checkAuthAndNavigate();
+      } else {
+        _splashController.addListener(_onConnectivityChanged);
       }
-    });
+    }
+  }
+
+  void _onConnectivityChanged() {
+    print("Connectivity Checking");
+    if (_splashController.hasInternet) {
+      _splashController.removeListener(_onConnectivityChanged);
+      _checkAuthAndNavigate();
+    }
+  }
+
+  Future<void> _checkAuthAndNavigate() async {
+    print("Auth and Navigation");
+    final authController = Provider.of<LoginController>(context, listen: false);
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (!mounted) return;
+    if (authController.isLoggedIn) {
+      print("Navigate Home Screen");
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => HomeScreen()),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+    }
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _splashController.removeListener(_onConnectivityChanged);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppTheme.royalPurple,
-              AppTheme.deepBlue,
-            ],
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildLogo(),
-              const SizedBox(height: AppTheme.spacing12),
-
-              Consumer<LanguageProvider>(
-                builder: (_, lang, __) {
-                  return _buildAppName(lang);
-                },
+    return Consumer<SplashController>(
+      builder: (context, controller, child) {
+        return Scaffold(
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppTheme.royalPurple,
+                  AppTheme.deepBlue,
+                ],
               ),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
 
-              const SizedBox(height: AppTheme.spacing12),
+                  ///  LOGO (UNCHANGED)
+                  _buildLogo(),
+                  const SizedBox(height: AppTheme.spacing12),
 
-              Consumer<LanguageProvider>(
-                builder: (_, lang, __) {
-                  return _buildTagline(lang);
-                },
+                  ///  NAME (UNCHANGED PICORY STYLE)
+                  Consumer<LanguageProvider>(
+                    builder: (_, lang, __) {
+                      return _buildAppName(lang);
+                    },
+                  ),
+                  const SizedBox(height: AppTheme.spacing12),
+
+                  ///  TAGLINE (UNCHANGED)
+                  Consumer<LanguageProvider>(
+                    builder: (_, lang, __) {
+                      return _buildTagline(lang);
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  ///  CONNECTION STATUS (NEW ADD)
+                  _buildConnectionStatus(controller),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -123,28 +168,15 @@ class _SplashScreenState extends State<SplashScreen>
           child: Transform.scale(
             scale: _scaleAnimation.value,
             child: Container(
-              width: 120,
-              height: 120,
+              width: 180,
+              height: 180,
               decoration: BoxDecoration(
-                color: Colors.white,
                 borderRadius:
                 BorderRadius.circular(AppTheme.radiusXLarge),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 25,
-                    spreadRadius: 3,
-                    offset: Offset(
-                      0,
-                      15 + _bounceAnimation.value.abs(),
-                    ), // shadow bhi move karega
-                  ),
-                ],
               ),
-              child: const Icon(
-                Icons.camera_alt_rounded,
-                size: 60,
-                color: AppTheme.royalPurple,
+              child: Image.asset(
+                AppImages.appSplashLogo,
+                fit: BoxFit.contain,
               ),
             ),
           ),
@@ -156,11 +188,11 @@ class _SplashScreenState extends State<SplashScreen>
   Widget _buildAppName(LanguageProvider languageProvider) {
     return Text(
       languageProvider.getText('app_name'),
-      style: const TextStyle(
+      style: GoogleFonts.poppins(
         fontSize: 48,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.5,
         color: Colors.white,
-        letterSpacing: 1.2,
       ),
     );
   }
@@ -168,24 +200,38 @@ class _SplashScreenState extends State<SplashScreen>
   Widget _buildTagline(LanguageProvider languageProvider) {
     return Text(
       languageProvider.getText('tagline'),
-      style: TextStyle(
-        fontSize: 16,
+      style: GoogleFonts.lato(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
         color: Colors.white.withOpacity(0.9),
-        letterSpacing: 0.5,
+        letterSpacing: 0.8,
       ),
     );
   }
 
-  Widget _buildLoadingIndicator() {
-    return SizedBox(
-      width: 40,
-      height: 40,
-      child: CircularProgressIndicator(
-        valueColor: AlwaysStoppedAnimation<Color>(
-          Colors.white.withOpacity(0.8),
+  //  NEW (Mahakal se liya hua)
+  Widget _buildConnectionStatus(SplashController controller) {
+    if (controller.isLoading) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 10),
+        child: CircularProgressIndicator(color: Colors.white),
+      );
+    } else if (!controller.hasInternet) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 10),
+        child: Text(
+          "No Internet Connection",
+          style: TextStyle(color: Colors.white),
         ),
-        strokeWidth: 3,
-      ),
-    );
+      );
+    } else {
+      return const Padding(
+        padding: EdgeInsets.only(top: 10),
+        child: Text(
+          "Connected",
+          style: TextStyle(color: Colors.white),
+        ),
+      );
+    }
   }
 }
