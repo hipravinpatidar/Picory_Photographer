@@ -1,15 +1,40 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:picory_app/service/conectivity_service.dart';
+import 'package:picory_app/view/events_screen.dart';
+import 'package:picory_app/view/home_screen.dart';
+import 'package:picory_app/view/login_screen.dart';
+import 'package:picory_app/view/main_screen.dart';
+import 'package:picory_app/view/register_screen.dart';
 import 'package:picory_app/view/splash_screen.dart';
+import 'package:picory_app/view/verify_otp_screen.dart';
 import 'package:provider/provider.dart';
+import 'controllers/check_user_provider.dart';
 import 'controllers/language_provider.dart';
+import 'controllers/login_user_provider.dart';
+import 'controllers/register_user_provider.dart';
+import 'controllers/splash_controller.dart';
 import 'controllers/theme_provider.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase without firebase_options.dart
+  await Firebase.initializeApp();
+  print("Firebase Connected Successfully ");
+
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => ConnectivityService()),
+        ChangeNotifierProvider(create: (_) => LoginController()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => LanguageProvider()),
+        ChangeNotifierProvider(create: (_) => SplashController()),
+        ChangeNotifierProvider(create: (_) => CheckUserProvider()),
+        ChangeNotifierProvider(create: (_) => LoginController()),
+        ChangeNotifierProvider(create: (_) => RegisterUserProvider()),
+        //ChangeNotifierProvider(create: (_) => AuthenticateProvider()),
       ],
       child: const PicoryApp(),
     ),
@@ -29,7 +54,7 @@ class PicoryApp extends StatelessWidget {
           theme: themeProvider.lightTheme,
           darkTheme: themeProvider.darkTheme,
           themeMode: themeProvider.themeMode,
-          home: const SplashScreen(),
+          home:  SplashScreen(),
         );
       },
     );

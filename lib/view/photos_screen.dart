@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-
 import '../controllers/language_provider.dart';
 import '../controllers/theme_provider.dart';
 import '../ui_helpers/app_theme.dart';
@@ -122,10 +121,16 @@ class _PhotosScreenState extends State<PhotosScreen> {
 
         return Scaffold(
           appBar: AppBar(
+            automaticallyImplyLeading: false,
+            leading: IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: Icon(Icons.arrow_back_ios)),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.eventName),
+                Text(widget.eventName, style: TextStyle(fontSize: 24),),
                 Text(
                   '${_photos.length} ${languageProvider.getText('total_photos')}',
                   style: TextStyle(
@@ -137,6 +142,7 @@ class _PhotosScreenState extends State<PhotosScreen> {
                 ),
               ],
             ),
+            centerTitle: true,
             actions: [
               if (_isSelectionMode)
                 IconButton(
@@ -267,17 +273,15 @@ class _PhotosScreenState extends State<PhotosScreen> {
               ),
             ],
           ),
-
-          floatingActionButton:
-          FloatingActionButton.extended(
-            onPressed: _uploadPhotos,
-            backgroundColor: AppTheme.royalPurple,
-            icon: const Icon(
-                Icons.add_photo_alternate_rounded),
-            label: Text(
-              languageProvider.getText('add_photos'),
-            ),
-          ),
+          // floatingActionButton: FloatingActionButton.extended(
+          //   onPressed: _uploadPhotos,
+          //   backgroundColor: AppTheme.royalPurple,
+          //   icon: const Icon(
+          //       Icons.add_photo_alternate_rounded),
+          //   label: Text(
+          //     languageProvider.getText('add_photos'),
+          //   ),
+          // ),
         );
       },
     );

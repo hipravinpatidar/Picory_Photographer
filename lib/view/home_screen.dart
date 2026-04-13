@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/language_provider.dart';
 import '../controllers/theme_provider.dart';
+import '../ui_helpers/app_images.dart';
 import '../ui_helpers/app_theme.dart';
 import 'create_event_screen.dart';
 import 'event_details_screen.dart';
@@ -17,51 +18,108 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        //leadingWidth: 150,
+        // leading: Padding(
+        //   padding: const EdgeInsets.only(left: 12),
+        //   child: Row(
+        //     mainAxisAlignment: MainAxisAlignment.start,
+        //     crossAxisAlignment: CrossAxisAlignment.center,
+        //     children: [
+        //       Image.asset(
+        //         AppImages.homeAppLogo,
+        //         height: 100,
+        //         width: 80,
+        //         fit: BoxFit.contain,
+        //       ),
+        //       // Container(
+        //       //   height: 42,
+        //       //   margin: const EdgeInsets.only(right: 8),
+        //       //   decoration: BoxDecoration(
+        //       //     shape: BoxShape.circle,
+        //       //     color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+        //       //     boxShadow: [
+        //       //       BoxShadow(
+        //       //         color: isDark
+        //       //             ? AppTheme.royalPurple.withOpacity(0.3)
+        //       //             : Colors.grey.withOpacity(0.3),
+        //       //         blurRadius: 8,
+        //       //         spreadRadius: 1,
+        //       //       ),
+        //       //     ],
+        //       //   ),
+        //       //   child: IconButton(
+        //       //     onPressed: () => themeProvider.toggleTheme(),
+        //       //     icon: AnimatedSwitcher(
+        //       //       duration: const Duration(milliseconds: 300),
+        //       //       transitionBuilder: (child, anim) =>
+        //       //           RotationTransition(turns: anim, child: child),
+        //       //       child: Icon(
+        //       //         isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+        //       //         key: ValueKey(isDark),
+        //       //         color: isDark ? Colors.amber : AppTheme.royalPurple,
+        //       //         size: 22,
+        //       //       ),
+        //       //     ),
+        //       //   ),
+        //       // )
+        //     ],
+        //   ),
+        // ),
         title: Row(
           children: [
-            Container(
-              width: 35,
-              height: 35,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppTheme.royalPurple, AppTheme.accentPurple],
-                ),
-                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-              ),
-              child: const Icon(
-                Icons.camera_alt_rounded,
-                size: 20,
-                color: Colors.white,
-              ),
+            Image.asset(
+              AppImages.homeAppLogo,
+              height: 80,
+              width: 80,
+              fit: BoxFit.contain,
             ),
-            const SizedBox(width: AppTheme.spacing12),
-            Text(languageProvider.getText('app_name')),
-          ],
-        ),
-        actions: [
-          // Language Toggle
-          Container(
-            margin: const EdgeInsets.only(right: AppTheme.spacing8),
-            decoration: BoxDecoration(
-              color: isDark ? AppTheme.darkSurface : AppTheme.lightSurface,
-              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-              border: Border.all(
-                color: isDark ? const Color(0xFF2A2A3E) : Colors.grey.shade300,
-              ),
-            ),
-            child: Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                _buildLanguageButton(context, 'EN', !languageProvider.isHindi, () {
-                  if (languageProvider.isHindi) languageProvider.toggleLanguage();
-                }),
-                _buildLanguageButton(context, 'हिं', languageProvider.isHindi, () {
-                  if (!languageProvider.isHindi) languageProvider.toggleLanguage();
-                }),
+                Text(
+                  languageProvider.getText('app_name'),
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  languageProvider.getText('app_slug'),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
-          ),
+          ],
+        ),
+        centerTitle: false,
+        actions: [
+          // Language Toggle
+          // Container(
+          //   margin: const EdgeInsets.only(right: AppTheme.spacing8),
+          //   decoration: BoxDecoration(
+          //     color: isDark ? AppTheme.darkSurface : AppTheme.lightSurface,
+          //     borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+          //     border: Border.all(
+          //       color: isDark ? const Color(0xFF2A2A3E) : Colors.grey.shade300,
+          //     ),
+          //   ),
+          //   child: Row(
+          //     children: [
+          //       _buildLanguageButton(context, 'EN', !languageProvider.isHindi, () {
+          //         if (languageProvider.isHindi) languageProvider.toggleLanguage();
+          //       }),
+          //       _buildLanguageButton(context, 'हिं', languageProvider.isHindi, () {
+          //         if (!languageProvider.isHindi) languageProvider.toggleLanguage();
+          //       }),
+          //     ],
+          //   ),
+          // ),
 
-          // Theme Toggle
+          // // Theme Toggle
           Container(
             height: 42,
             margin: const EdgeInsets.only(right: 8),
@@ -70,7 +128,9 @@ class HomeScreen extends StatelessWidget {
               color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: isDark ? AppTheme.royalPurple.withOpacity(0.3) : Colors.grey.withOpacity(0.3),
+                  color: isDark
+                      ? AppTheme.royalPurple.withOpacity(0.3)
+                      : Colors.grey.withOpacity(0.3),
                   blurRadius: 8,
                   spreadRadius: 1,
                 ),
@@ -80,10 +140,11 @@ class HomeScreen extends StatelessWidget {
               onPressed: () => themeProvider.toggleTheme(),
               icon: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
-                transitionBuilder: (child, anim) => RotationTransition(turns: anim, child: child),
+                transitionBuilder: (child, anim) =>
+                    RotationTransition(turns: anim, child: child),
                 child: Icon(
                   isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                  key: ValueKey(isDark), // Necessary for AnimatedSwitcher
+                  key: ValueKey(isDark),
                   color: isDark ? Colors.amber : AppTheme.royalPurple,
                   size: 22,
                 ),
@@ -97,72 +158,73 @@ class HomeScreen extends StatelessWidget {
         child: Consumer2<LanguageProvider, ThemeProvider>(
           builder: (context, languageProvider, themeProvider, _) {
             final isDark = themeProvider.isDarkMode;
+            return Container(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+                  // Active Plan Card
+                  _buildPlanCard(context, languageProvider, isDark),
+                  const SizedBox(height: AppTheme.spacing20),
 
-                // Active Plan Card
-                _buildPlanCard(context, languageProvider, isDark),
-                const SizedBox(height: AppTheme.spacing20),
-
-                // Action Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const CreateEventScreen(),
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const CreateEventScreen(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.add_rounded),
+                          label: Text(languageProvider.getText('create_event')),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppTheme.spacing16,
                             ),
-                          );
-                        },
-                        icon: const Icon(Icons.add_rounded),
-                        label: Text(languageProvider.getText('create_event')),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppTheme.spacing16,
                           ),
                         ),
                       ),
-                    ),
 
-                    const SizedBox(width: AppTheme.spacing12),
+                      const SizedBox(width: AppTheme.spacing12),
 
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.upgrade_rounded),
-                        label: Text(languageProvider.getText('upgrade_plan')),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppTheme.spacing16,
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {},
+                          icon: const Icon(Icons.upgrade_rounded),
+                          label: Text(languageProvider.getText('upgrade_plan')),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppTheme.spacing16,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppTheme.spacing24),
-
-                // Events Header
-                Text(
-                  languageProvider.getText('events'),
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: isDark
-                        ? AppTheme.darkTextPrimary
-                        : AppTheme.lightTextPrimary,
+                    ],
                   ),
-                ),
-                const SizedBox(height: AppTheme.spacing16),
+                  const SizedBox(height: AppTheme.spacing24),
 
-                // Events Grid
-                _buildEventsGrid(context, languageProvider, isDark),
-              ],
+                  // Events Header
+                  Text(
+                    languageProvider.getText('events'),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: isDark
+                          ? AppTheme.darkTextPrimary
+                          : AppTheme.lightTextPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spacing16),
+
+                  // Events Grid
+                  _buildEventsGrid(context, languageProvider, isDark),
+                ],
+              ),
             );
           },
         ),
@@ -187,7 +249,7 @@ class HomeScreen extends StatelessWidget {
           style: TextStyle(
             color: isActive ? Colors.white : AppTheme.royalPurple,
             fontWeight: FontWeight.w600,
-            fontSize: 12,
+            fontSize: 16,
           ),
         ),
       ),
